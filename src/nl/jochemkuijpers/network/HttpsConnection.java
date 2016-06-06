@@ -16,13 +16,6 @@ public class HttpsConnection extends Connection {
 	private final static int DESTINATION_PORT = 443;
 
 	/**
-	 * @see Connection#Connection(String,String,boolean)
-	 */
-	public HttpsConnection(String host, String useragent, boolean keepalive) {
-		super(host, useragent, keepalive);
-	}
-
-	/**
 	 * @see Connection#Connection(String,String)
 	 */
 	public HttpsConnection(String host, String useragent) {
@@ -38,12 +31,6 @@ public class HttpsConnection extends Connection {
 
 	@Override
 	protected void openSocket() throws UnknownHostException, IOException {
-		if (socket != null) {
-			if (socket.isConnected() && !socket.isClosed()) {
-				return;
-			}
-		}
-
 		SSLSocketFactory ssf = (SSLSocketFactory) SSLSocketFactory.getDefault();
 		socket = ssf.createSocket(host, DESTINATION_PORT);
 	}

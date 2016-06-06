@@ -15,13 +15,6 @@ public class HttpConnection extends Connection {
 	private final static int DESTINATION_PORT = 80;
 
 	/**
-	 * @see Connection#Connection(String,String,boolean)
-	 */
-	public HttpConnection(String host, String useragent, boolean keepalive) {
-		super(host, useragent, keepalive);
-	}
-
-	/**
 	 * @see Connection#Connection(String,String)
 	 */
 	public HttpConnection(String host, String useragent) {
@@ -37,12 +30,6 @@ public class HttpConnection extends Connection {
 
 	@Override
 	protected void openSocket() throws UnknownHostException, IOException {
-		if (socket != null) {
-			if (socket.isConnected() && !socket.isClosed()) {
-				return;
-			}
-		}
-
 		socket = new Socket(host, DESTINATION_PORT);
 	}
 

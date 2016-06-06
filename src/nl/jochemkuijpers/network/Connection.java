@@ -22,7 +22,6 @@ import java.util.Map.Entry;
  */
 public abstract class Connection {
 	private final static String DEFAULT_USER_AGENT = "Mozilla/5.0 (nl.jochemkuijpers.network 1.0)";
-	private final static boolean DEFAULT_KEEPALIVE = false;
 
 	protected final String host;
 	protected Socket socket;
@@ -31,29 +30,6 @@ public abstract class Connection {
 	private String status;
 	private Map<String, String> responseHeaders;
 	private final Map<String, String> customHeaders;
-	private final boolean keepalive;
-
-	/**
-	 * Set up a connection with a specified destination host and user agent.
-	 * 
-	 * @param host
-	 *            destination host
-	 * @param useragent
-	 *            user agent
-	 * @param keepalive
-	 *            whether or not to keep the socket open after each request.
-	 *            This could lead to problems if the content-length header was
-	 *            not properly set by the server.
-	 */
-	protected Connection(String host, String useragent, boolean keepalive) {
-		this.host = host;
-		this.socket = null;
-		this.useragent = useragent;
-		this.status = null;
-		this.responseHeaders = null;
-		this.customHeaders = new HashMap<String, String>();
-		this.keepalive = keepalive;
-	}
 
 	/**
 	 * Set up a connection with a specified destination host and user agent.
@@ -64,7 +40,12 @@ public abstract class Connection {
 	 *            user agent
 	 */
 	protected Connection(String host, String useragent) {
-		this(host, useragent, DEFAULT_KEEPALIVE);
+		this.host = host;
+		this.socket = null;
+		this.useragent = useragent;
+		this.status = null;
+		this.responseHeaders = null;
+		this.customHeaders = new HashMap<String, String>();
 	}
 
 	/**
@@ -74,7 +55,7 @@ public abstract class Connection {
 	 *            destination host
 	 */
 	protected Connection(String host) {
-		this(host, DEFAULT_USER_AGENT, DEFAULT_KEEPALIVE);
+		this(host, DEFAULT_USER_AGENT);
 	}
 
 	/**
@@ -95,9 +76,8 @@ public abstract class Connection {
 	 * Content-Length header or an empty array is returned, even if the
 	 * InputStream contained data.
 	 * 
-	 * This method will close the socket is keepalive was not set to true in the
-	 * constructor, and will do so anyway if the received response did not have
-	 * a valid Content-Length header.
+	 * This method will close the socket so no further reading is possible. A
+	 * new request will open a new socket.
 	 * 
 	 * @param in
 	 *            socket InputStream
@@ -150,11 +130,8 @@ public abstract class Connection {
 			}
 			out.write(buffer, 0, (int) Math.min(len, length - n));
 		}
-
-		if (!keepalive) {
-			socket.close();
-		}
-
+		
+		socket.close();
 		return out.toByteArray();
 	}
 
