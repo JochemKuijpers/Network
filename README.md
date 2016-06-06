@@ -5,7 +5,7 @@ A simple and easy to use HTTP and HTTPS Java library
 This repository is licensed under the MIT license. Please refer to the [LICENSE](LICENSE) file for more information.
 
 ## Download
-You can either add the source directory to your project, or download the jar [here](https://github.com/JochemKuijpers/Network/raw/master/jar/network-20160604.jar).
+You can find the latest release and older releases [here](https://github.com/JochemKuijpers/Network/releases/).	
 
 ## Examples
 
