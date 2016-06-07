@@ -1,7 +1,7 @@
 package nl.jochemkuijpers.network;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
+import java.net.Socket;
 
 import javax.net.ssl.SSLSocketFactory;
 
@@ -19,19 +19,19 @@ public class HttpsConnection extends Connection {
 	 * @see Connection#Connection(String,String)
 	 */
 	public HttpsConnection(String host, String useragent) {
-		super(host, useragent);
+		super(host, DESTINATION_PORT, useragent);
 	}
 
 	/**
 	 * @see Connection#Connection(String)
 	 */
 	public HttpsConnection(String host) {
-		super(host);
+		super(host, DESTINATION_PORT);
 	}
 
 	@Override
-	protected void openSocket() throws UnknownHostException, IOException {
+	protected Socket createSocket() throws IOException {
 		SSLSocketFactory ssf = (SSLSocketFactory) SSLSocketFactory.getDefault();
-		socket = ssf.createSocket(host, DESTINATION_PORT);
+		return ssf.createSocket();
 	}
 }

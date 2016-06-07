@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,12 +24,15 @@ public abstract class Connection {
 	private final static String DEFAULT_USER_AGENT = "Mozilla/5.0 (nl.jochemkuijpers.network 1.0)";
 
 	protected final String host;
-	protected Socket socket;
 
+	private final int port;
 	private final String useragent;
 	private String status;
 	private Map<String, String> responseHeaders;
 	private final Map<String, String> customHeaders;
+
+	protected int connectionTimeout;
+	protected int responseTimeout;
 
 	/**
 	 * Set up a connection with a specified destination host and user agent.
@@ -39,13 +42,15 @@ public abstract class Connection {
 	 * @param useragent
 	 *            user agent
 	 */
-	protected Connection(String host, String useragent) {
+	protected Connection(String host, int port, String useragent) {
 		this.host = host;
-		this.socket = null;
+		this.port = port;
 		this.useragent = useragent;
 		this.status = null;
 		this.responseHeaders = null;
 		this.customHeaders = new HashMap<String, String>();
+		this.connectionTimeout = 30;
+		this.responseTimeout = 60;
 	}
 
 	/**
@@ -54,8 +59,8 @@ public abstract class Connection {
 	 * @param host
 	 *            destination host
 	 */
-	protected Connection(String host) {
-		this(host, DEFAULT_USER_AGENT);
+	protected Connection(String host, int port) {
+		this(host, port, DEFAULT_USER_AGENT);
 	}
 
 	/**
@@ -63,21 +68,27 @@ public abstract class Connection {
 	 * socket should be created if the socket member is null or otherwise
 	 * unavailable.
 	 * 
+	 * @returns the socket to be used
 	 * @throws IOException
 	 *             if an IO error occurred
-	 * @throws UnknownHostException
-	 *             if the host could not be resolved
 	 */
-	protected abstract void openSocket() throws UnknownHostException,
-			IOException;
+	protected abstract Socket createSocket() throws IOException;
+
+	/**
+	 * Connect the socket.
+	 * 
+	 * @throws IOException
+	 *             if an IO error occurred
+	 */
+	private void connectSocket(Socket socket) throws IOException {
+		socket.connect(new InetSocketAddress(host, port), connectionTimeout);
+		socket.setSoTimeout(responseTimeout);
+	}
 
 	/**
 	 * Reads the response from an InputStream. The response should contain a
 	 * Content-Length header or an empty array is returned, even if the
 	 * InputStream contained data.
-	 * 
-	 * This method will close the socket so no further reading is possible. A
-	 * new request will open a new socket.
 	 * 
 	 * @param in
 	 *            socket InputStream
@@ -101,7 +112,6 @@ public abstract class Connection {
 
 		String contentLength = responseHeaders.get("content-length");
 		if (contentLength == null) {
-			socket.close();
 			return new byte[0];
 		}
 
@@ -109,12 +119,10 @@ public abstract class Connection {
 		try {
 			length = Long.valueOf(contentLength);
 		} catch (NumberFormatException e) {
-			socket.close();
 			return new byte[0];
 		}
 
 		if (length <= 0) {
-			socket.close();
 			return new byte[0];
 		}
 
@@ -130,8 +138,7 @@ public abstract class Connection {
 			}
 			out.write(buffer, 0, (int) Math.min(len, length - n));
 		}
-		
-		socket.close();
+
 		return out.toByteArray();
 	}
 
@@ -272,6 +279,32 @@ public abstract class Connection {
 	}
 
 	/**
+	 * Sets the maximum time the socket can take to make a connection.
+	 * 
+	 * @param seconds
+	 *            the number of seconds to wait
+	 */
+	public void setConnectionTimeout(int seconds) {
+		if (seconds <= 0) {
+			throw new IllegalArgumentException("seconds must be positive");
+		}
+		this.connectionTimeout = seconds;
+	}
+
+	/**
+	 * Sets the maximum time the server can take to send a response.
+	 * 
+	 * @param seconds
+	 *            the number of seconds to wait
+	 */
+	public void setResponseTimeout(int seconds) {
+		if (seconds <= 0) {
+			throw new IllegalArgumentException("seconds must be positive");
+		}
+		this.responseTimeout = seconds;
+	}
+
+	/**
 	 * Performs a GET request and returns the response body as a byte array and
 	 * sets the status and responseHeader members.
 	 * 
@@ -283,7 +316,8 @@ public abstract class Connection {
 	 *             if an error occurred
 	 */
 	public byte[] get(String path) throws IOException {
-		openSocket();
+		Socket socket = createSocket();
+		connectSocket(socket);
 
 		OutputStream out = socket.getOutputStream();
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
@@ -297,7 +331,9 @@ public abstract class Connection {
 		writer.write("\r\n");
 		writer.flush();
 
-		return readResponse(socket.getInputStream());
+		byte[] response = readResponse(socket.getInputStream());
+		socket.close();
+		return response;
 	}
 
 	/**
@@ -362,7 +398,8 @@ public abstract class Connection {
 	 */
 	public byte[] post(String path, Map<String, String> fields)
 			throws IOException {
-		openSocket();
+		Socket socket = createSocket();
+		connectSocket(socket);
 
 		OutputStream out = socket.getOutputStream();
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
@@ -384,7 +421,9 @@ public abstract class Connection {
 		out.write(content);
 		out.flush();
 
-		return readResponse(socket.getInputStream());
+		byte[] response = readResponse(socket.getInputStream());
+		socket.close();
+		return response;
 	}
 
 	/**
@@ -427,7 +466,8 @@ public abstract class Connection {
 	 */
 	public byte[] post(String path, Map<String, String> formFields,
 			Map<String, InputFile> fileFields) throws IOException {
-		openSocket();
+		Socket socket = createSocket();
+		connectSocket(socket);
 
 		OutputStream out = socket.getOutputStream();
 		out = System.out;
@@ -451,7 +491,9 @@ public abstract class Connection {
 		out.write(content);
 		out.flush();
 
-		return readResponse(socket.getInputStream());
+		byte[] response = readResponse(socket.getInputStream());
+		socket.close();
+		return response;
 	}
 
 	/**

@@ -2,7 +2,6 @@ package nl.jochemkuijpers.network;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 /**
  * Sends GET, POST and POST multipart requests over a plaintext HTTP connection.
@@ -18,19 +17,19 @@ public class HttpConnection extends Connection {
 	 * @see Connection#Connection(String,String)
 	 */
 	public HttpConnection(String host, String useragent) {
-		super(host, useragent);
+		super(host, DESTINATION_PORT, useragent);
 	}
 
 	/**
 	 * @see Connection#Connection(String)
 	 */
 	public HttpConnection(String host) {
-		super(host);
+		super(host, DESTINATION_PORT);
 	}
 
 	@Override
-	protected void openSocket() throws UnknownHostException, IOException {
-		socket = new Socket(host, DESTINATION_PORT);
+	protected Socket createSocket() throws IOException {
+		return new Socket();
 	}
 
 }
