@@ -264,7 +264,7 @@ public abstract class Connection {
 			throw new IllegalArgumentException(field + " header cannot be set");
 		}
 
-		customHeaders.put(field.toLowerCase(), content.trim());
+		customHeaders.put(field.toLowerCase().trim(), content.trim());
 	}
 
 	/**
@@ -275,7 +275,7 @@ public abstract class Connection {
 	 *            the header field name.
 	 */
 	public void unsetHeader(String field) {
-		customHeaders.remove(field.toLowerCase());
+		customHeaders.remove(field.toLowerCase().trim());
 	}
 
 	/**
