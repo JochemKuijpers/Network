@@ -281,27 +281,27 @@ public abstract class Connection {
 	/**
 	 * Sets the maximum time the socket can take to make a connection.
 	 * 
-	 * @param seconds
-	 *            the number of seconds to wait
+	 * @param ms
+	 *            the number of milliseconds to wait
 	 */
-	public void setConnectionTimeout(int seconds) {
-		if (seconds <= 0) {
-			throw new IllegalArgumentException("seconds must be positive");
+	public void setConnectionTimeout(int ms) {
+		if (ms <= 0) {
+			throw new IllegalArgumentException("ms must be positive");
 		}
-		this.connectionTimeout = seconds;
+		this.connectionTimeout = ms;
 	}
 
 	/**
 	 * Sets the maximum time the server can take to send a response.
 	 * 
-	 * @param seconds
-	 *            the number of seconds to wait
+	 * @param ms
+	 *            the number of milliseconds to wait
 	 */
-	public void setResponseTimeout(int seconds) {
-		if (seconds <= 0) {
-			throw new IllegalArgumentException("seconds must be positive");
+	public void setResponseTimeout(int ms) {
+		if (ms <= 0) {
+			throw new IllegalArgumentException("ms must be positive");
 		}
-		this.responseTimeout = seconds;
+		this.responseTimeout = ms;
 	}
 
 	/**
