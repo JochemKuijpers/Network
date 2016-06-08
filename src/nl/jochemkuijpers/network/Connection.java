@@ -39,6 +39,8 @@ public abstract class Connection {
 	 * 
 	 * @param host
 	 *            destination host
+	 * @param port
+	 *            destination port
 	 * @param useragent
 	 *            user agent
 	 */
@@ -58,6 +60,8 @@ public abstract class Connection {
 	 * 
 	 * @param host
 	 *            destination host
+	 * @param port
+	 *            destination port
 	 */
 	protected Connection(String host, int port) {
 		this(host, port, DEFAULT_USER_AGENT);
@@ -470,7 +474,6 @@ public abstract class Connection {
 		connectSocket(socket);
 
 		OutputStream out = socket.getOutputStream();
-		out = System.out;
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
 
 		String boundary = generateBoundary();
