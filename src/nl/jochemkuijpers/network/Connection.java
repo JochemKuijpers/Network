@@ -393,23 +393,38 @@ public abstract class Connection {
 	 *            a valid path without first slash and without query string. To
 	 *            request the root path, set an empty string. Should be properly
 	 *            url-encoded.
-	 * @param fields
-	 *            a mapping from field name to field value. These should not be
-	 *            url-encoded.
 	 * @return response body as a byte array, or empty byte array.
 	 * @throws IOException
 	 *             if an error occurred
 	 */
-	public byte[] post(String path, Map<String, String> fields)
-			throws IOException {
+	public byte[] post(String path) throws IOException {
+		return post(path, "");
+	}
+
+	/**
+	 * Performs a POST request and returns the response body as a byte array and
+	 * sets the status and responseHeader members.
+	 * 
+	 * Sends data as Content-Type: application/x-www-form-urlencoded
+	 * 
+	 * @param path
+	 *            a valid path without first slash and without query string. To
+	 *            request the root path, set an empty string. Should be properly
+	 *            url-encoded.
+	 * @param postData
+	 *            raw data to put in the content of a post request.
+	 * @return response body as a byte array, or empty byte array.
+	 * @throws IOException
+	 *             if an error occurred
+	 */
+	public byte[] post(String path, String postData) throws IOException {
 		Socket socket = createSocket();
 		connectSocket(socket);
 
 		OutputStream out = socket.getOutputStream();
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
 
-		byte[] content = NetworkUtils.mapToQueryString(fields).getBytes(
-				StandardCharsets.UTF_8);
+		byte[] content = postData.getBytes(StandardCharsets.UTF_8);
 
 		writer.write("POST /" + path + " HTTP/1.1\r\n");
 		writer.write("User-Agent: " + useragent + "\r\n");
@@ -440,12 +455,16 @@ public abstract class Connection {
 	 *            a valid path without first slash and without query string. To
 	 *            request the root path, set an empty string. Should be properly
 	 *            url-encoded.
+	 * @param fields
+	 *            a mapping from field name to field value. These should not be
+	 *            url-encoded.
 	 * @return response body as a byte array, or empty byte array.
 	 * @throws IOException
 	 *             if an error occurred
 	 */
-	public byte[] post(String path) throws IOException {
-		return post(path, new HashMap<String, String>(0));
+	public byte[] post(String path, Map<String, String> fields)
+			throws IOException {		
+		return post(path, NetworkUtils.mapToQueryString(fields));
 	}
 
 	/**
