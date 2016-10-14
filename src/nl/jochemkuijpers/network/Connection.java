@@ -51,8 +51,8 @@ public abstract class Connection {
 		this.status = null;
 		this.responseHeaders = null;
 		this.customHeaders = new HashMap<String, String>();
-		this.connectionTimeout = 30;
-		this.responseTimeout = 60;
+		this.connectionTimeout = 30000;
+		this.responseTimeout = 60000;
 	}
 
 	/**
